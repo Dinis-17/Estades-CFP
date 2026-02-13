@@ -1,0 +1,31 @@
+// Colors
+$brilliance: #fcfdfd;
+$springtime-rain: #edeff3;
+$wind-weaver: #c6d1d7;
+$wild-thistle: #9fa0b5;
+$soothing-sapphire: #2f7eda;
+$blackwater: #555663;
+
+// Color Primari i Secundari
+$primary-color: $soothing-sapphire;
+$secondary-color: $wild-thistle;
+
+// Fons
+$bg-light: $brilliance;
+$bg-soft: $springtime-rain;
+
+// Text
+$text-primary: $soothing-sapphire;
+$text-main: $blackwater;
+$text-secondary: $wild-thistle;
+$text-muted: $wind-weaver;
+$text-on-primary: $brilliance;
+
+// Tipografía
+$main-font:
+  "sans-serif",
+  system-ui,
+  -apple-system,
+  sans-serif;
+$base-padding: 2rem;
+$border-radius: 8px;
