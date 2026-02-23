@@ -5,6 +5,8 @@ import Header from "./components/header/Header";
 
 // Pagines
 import Home from "./pages/home/Home";
+import Login from "./pages/login/Login";
+import DetallsEmpresa from "./pages/detallsEmpresa/DetallsEmpresa";
 
 function App() {
   return (
@@ -12,6 +14,7 @@ function App() {
       <Header />
       <main className="main-container">
         <Routes>
+          <Route path="login" element={<Login />} />
           <Route path="/" element={<Home />} />
         </Routes>
       </main>

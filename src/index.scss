@@ -6,36 +6,31 @@
   color: $text-main;
   background-color: $bg-light;
 
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+html {
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
 }
 
 body {
   margin: 0;
+  padding: 0;
   display: flex;
   min-height: 100vh;
   background-color: $bg-soft;
-}
-
-h1,
-h2,
-h3 {
-  color: $text-primary;
-  margin-top: 0;
-}
-
-p {
-  color: $text-main;
-}
-
-small,
-.muted {
-  color: $text-muted;
-}
-
-.main-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: $base-padding;
+  overflow-x: hidden;
 }

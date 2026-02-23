@@ -1,0 +1,94 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: $bg-main;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-card {
+  background-color: $bg-card;
+  padding: 2.5rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+
+  .login-title {
+    font-family: serif; // Para imitar el estilo de la imagen
+    font-size: 2rem;
+    color: $text-dark;
+    margin-bottom: 2rem;
+    font-weight: 500;
+  }
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+
+  .input-group {
+    margin-bottom: 1rem;
+    position: relative;
+
+    .login-input {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border: 1px solid $border-color;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      outline: none;
+      box-sizing: border-box;
+
+      &::placeholder {
+        color: #aaaaaa;
+      }
+
+      &:focus {
+        border-color: $primary-blue;
+      }
+    }
+  }
+
+  .password-group {
+    .password-toggle-icon {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: $text-gray;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .forgot-password {
+    color: $text-gray;
+    font-size: 0.75rem;
+    text-decoration: none;
+    margin-bottom: 1.5rem;
+    align-self: flex-start;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .login-button {
+    background-color: $primary-blue;
+    color: white;
+    border: none;
+    padding: 0.9rem;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: darken($primary-blue, 10%);
+    }
+  }
+}
