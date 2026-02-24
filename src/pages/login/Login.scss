@@ -3,24 +3,27 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: $bg-main;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: $bg-light;
+  font-family: $main-font;
 }
 
 .login-card {
-  background-color: $bg-card;
-  padding: 2.5rem;
+  background-color: $bg-soft;
+  padding: 1.5rem;
   border-radius: 12px;
   width: 100%;
-  max-width: 400px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  max-width: 590px;
+  height: 100%;
+  max-height: 400px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
   .login-title {
-    font-family: serif; // Para imitar el estilo de la imagen
-    font-size: 2rem;
-    color: $text-dark;
+    font-family: Georgia, serif;
+    font-size: 2.25rem;
+    color: $text-main;
     margin-bottom: 2rem;
-    font-weight: 500;
+    font-weight: 400;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -34,19 +37,23 @@
 
     .login-input {
       width: 100%;
-      padding: 0.8rem 1rem;
-      border: 1px solid $border-color;
-      border-radius: 4px;
+      padding: 0.875rem 1rem;
+      border: 1px solid $wind-weaver;
+      border-radius: 6px;
       font-size: 0.9rem;
       outline: none;
       box-sizing: border-box;
+      background-color: $brilliance;
+      color: $text-main;
+      transition: border-color 0.2s ease;
 
       &::placeholder {
-        color: #aaaaaa;
+        color: $text-muted;
       }
 
       &:focus {
-        border-color: $primary-blue;
+        border-color: $primary-color;
+        box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
       }
     }
   }
@@ -54,41 +61,56 @@
   .password-group {
     .password-toggle-icon {
       position: absolute;
-      right: 10px;
-      top: 50%;
+      right: 12px;
+      top: 40%;
       transform: translateY(-50%);
-      color: $text-gray;
+      color: $text-primary;
       cursor: pointer;
       display: flex;
       align-items: center;
+      font-size: 1.1rem;
+
+      &:hover {
+        color: $text-secondary;
+      }
     }
   }
 
   .forgot-password {
-    color: $text-gray;
-    font-size: 0.75rem;
+    color: $text-secondary;
+    font-size: 0.8rem;
     text-decoration: none;
     margin-bottom: 1.5rem;
+    margin-top: 0.25rem;
     align-self: flex-start;
+    transition: color 0.2s ease;
 
     &:hover {
+      color: $text-main;
       text-decoration: underline;
     }
   }
 
   .login-button {
-    background-color: $primary-blue;
-    color: white;
+    background-color: $primary-color;
+    color: $text-on-primary;
     border: none;
-    padding: 0.9rem;
+    padding: 1rem;
     border-radius: 6px;
-    font-weight: bold;
-    font-size: 1rem;
+    font-weight: 600;
+    font-size: 0.95rem;
     cursor: pointer;
-    transition: background-color 0.2s;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
 
     &:hover {
-      background-color: darken($primary-blue, 10%);
+      background-color: darken($primary-color, 8%);
+      box-shadow: 0 4px 12px rgba($primary-color, 0.3);
+    }
+
+    &:active {
+      transform: translateY(1px);
     }
   }
 }
