@@ -20,7 +20,7 @@ const Login = () => {
             />
           </div>
 
-          <a href="#forgot" className="forgot-password">
+          <a href="" className="forgot-password">
             No recordo la contrasenya
           </a>
 
