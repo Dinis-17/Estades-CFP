@@ -1,26 +1,48 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Home.scss";
 import { Search, SlidersHorizontal } from "lucide-react";
 
 const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const results = [
-    {
-      id: 1,
-      title: "Andorra Telecom",
-      description:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley",
-      tags: ["TSSIX", "TSDP"],
-    },
-    {
-      id: 2,
-      title: "Caldea",
-      description:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley",
-      tags: ["TSGA"],
-    },
-  ];
+  useEffect(() => {
+    fetchEmpresas();
+  }, []);
+
+  const fetchEmpresas = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("http://localhost:5000/api/empreses");
+
+      if (!response.ok) {
+        throw new Error("Error al cargar empreses");
+      }
+
+      const data = await response.json();
+      setResults(data);
+      setError(null);
+    } catch (err) {
+      console.error("Error:", err);
+      setError("No s'han pogut carregar les empreses.");
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredResults = results.filter((result) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      result.title.toLowerCase().includes(searchLower) ||
+      result.description.toLowerCase().includes(searchLower) ||
+      result.branques.some((branca) =>
+        branca.toLowerCase().includes(searchLower),
+      )
+    );
+  });
 
   return (
     <div className="home-container">
@@ -42,28 +64,45 @@ const Home = () => {
 
       <div className="results-section">
         <div className="results-header">
-          <p className="results-count">{results.length} resultats</p>
+          <p className="results-count">
+            {loading ? "Carregant..." : `${filteredResults.length} resultats`}
+          </p>
         </div>
 
+        {error && (
+          <div className="error-message">
+            <p>⚠️ {error}</p>
+            <button onClick={fetchEmpresas}>Reintentar</button>
+          </div>
+        )}
+
         <div className="results-list">
-          {results.map((result) => (
-            <div key={result.id} className="result-card">
-              <div className="result-header">
-                <h3 className="result-title">{result.title}</h3>
-                <div className="result-tags">
-                  {result.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className={`tag tag-${tag.toLowerCase()}`}
-                    >
-                      {tag}
-                    </span>
-                  ))}
+          {loading ? (
+            <div className="loading">Carregant empreses...</div>
+          ) : filteredResults.length > 0 ? (
+            filteredResults.map((result) => (
+              <div key={result.id} className="result-card">
+                <div className="result-header">
+                  <h3 className="result-title">{result.title}</h3>
+                  <div className="result-tags">
+                    {result.branques.map((branca, index) => (
+                      <span
+                        key={index}
+                        className={`tag tag-${branca.toLowerCase()}`}
+                      >
+                        {branca}
+                      </span>
+                    ))}
+                  </div>
                 </div>
+                <p className="result-description">{result.description}</p>
               </div>
-              <p className="result-description">{result.description}</p>
+            ))
+          ) : (
+            <div className="no-results">
+              No s'han trobat empreses que coinsideixin amb la teva cerca.
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>
