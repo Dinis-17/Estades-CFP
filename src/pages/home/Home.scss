@@ -142,9 +142,46 @@
     color: #00aa44;
   }
 
+  &.tag-oau {
+    background-color: #d0f0fd;
+    color: #0288d1;
+  }
+
   &.tag-tsga {
     background-color: #fff9c4;
     color: #cc9900;
+  }
+
+  &.tag-sml {
+    background-color: #b2ebf2;
+    color: #00796b;
+  }
+
+  &.tag-tcai {
+    background-color: #ffcdd2;
+    color: #c62828;
+  }
+
+  &.tag-tsoco {
+    background-color: #ffe0b2;
+    color: #e65100;
+  }
+
+  &.tag-ep {
+    background-color: #f8bbd0;
+    color: #c2185b;
+  }
+
+  &.tag-afel {
+    background-color: #e1bee7;
+    color: #7b1fa2;
+  }
+
+  &:not(.tag-tssix):not(.tag-tsdp):not(.tag-oau):not(.tag-tsga):not(
+      .tag-sml
+    ):not(.tag-tcai):not(.tag-tsoco):not(.tag-ep):not(.tag-afel) {
+    background-color: #e0e0e0;
+    color: #616161;
   }
 }
 
