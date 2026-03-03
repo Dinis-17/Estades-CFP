@@ -50,38 +50,38 @@ app.get("/api/empreses", (req, res) => {
 
 app.get("/api/empreses/:id", (req, res) => {
   const { id } = req.params;
-  const query = "SELECT * FROM Empresa WHERE id_empresa = ?";
+  const query = "SELECT * FROM Empresa WHERE id_empresa = ? AND actiu = TRUE";
 
   db.query(query, [id], (err, results) => {
     if (err) {
       console.error("Error en la consulta:", err);
-      return res.status(500).json({ error: "Error al obtener empresa" });
+      return res.status(500).json({ error: "Error al obtenir empresa" });
     }
 
     if (results.length === 0) {
       return res.status(404).json({ error: "Empresa no trobada" });
     }
 
-    res.json(results[0]);
-  });
-});
+    const empresa = results[0];
 
-app.get("/api/empresas/buscar/:param", (req, res) => {
-  const { param } = req.params;
-  const query = `
-    SELECT * FROM Empresa 
-    WHERE actiu = TRUE 
-    AND (nom_empresa LIKE ? OR adreca LIKE ? OR email LIKE ?)
-    ORDER BY nom_empresa ASC
-  `;
-  const searchTerm = `%${param}%`;
+    const empresaDetallada = {
+      id: empresa.id_empresa,
+      nom: empresa.nom_empresa,
+      adreca: empresa.adreca,
+      telefon: empresa.telefon,
+      web: empresa.web,
+      email: empresa.email,
+      sens_div_func: empresa.sens_div_func,
+      idoneitat: empresa.idoneitat,
+      historial_incidents: empresa.historial_incidents,
+      comentaris_generals: empresa.comentaris_generals,
+      branques: empresa.branques
+        ? empresa.branques.split(",").map((b) => b.trim())
+        : [],
+      actiu: empresa.actiu,
+    };
 
-  db.query(query, [searchTerm, searchTerm, searchTerm], (err, results) => {
-    if (err) {
-      console.error("Error en la búsqueda:", err);
-      return res.status(500).json({ error: "Error al buscar empreses" });
-    }
-    res.json(results);
+    res.json(empresaDetallada);
   });
 });
 

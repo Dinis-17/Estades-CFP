@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Home.scss";
 import { Search, SlidersHorizontal } from "lucide-react";
 
 const Home = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +46,10 @@ const Home = () => {
     );
   });
 
+  const handleCardClick = (id) => {
+    navigate(`/empreses/${id}`);
+  };
+
   return (
     <div className="home-container">
       <div className="search-section">
@@ -81,7 +87,11 @@ const Home = () => {
             <div className="loading">Carregant empreses...</div>
           ) : filteredResults.length > 0 ? (
             filteredResults.map((result) => (
-              <div key={result.id} className="result-card">
+              <div
+                key={result.id}
+                className="result-card"
+                onClick={() => handleCardClick(result.id)}
+              >
                 <div className="result-header">
                   <h3 className="result-title">{result.title}</h3>
                   <div className="result-tags">
