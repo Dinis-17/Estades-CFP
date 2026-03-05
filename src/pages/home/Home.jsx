@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import SearchBar from "../../components/searchBar/SearchBar";
 import "./Home.scss";
-import { Search, SlidersHorizontal } from "lucide-react";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -10,21 +10,32 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchEmpresas();
-  }, []);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 10;
 
-  const fetchEmpresas = async () => {
+  useEffect(() => {
+    fetchEmpresas(currentPage);
+  }, [currentPage]);
+
+  const fetchEmpresas = async (page) => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5000/api/empreses");
+      const response = await fetch(
+        `http://localhost:5000/api/empreses?page=${page}&limit=${itemsPerPage}`,
+      );
 
       if (!response.ok) {
         throw new Error("Error al cargar empreses");
       }
 
       const data = await response.json();
-      setResults(data);
+
+      setResults(data.data);
+      setCurrentPage(data.pagination.currentPage);
+      setTotalPages(data.pagination.totalPages);
+      setTotalItems(data.pagination.totalItems);
       setError(null);
     } catch (err) {
       console.error("Error:", err);
@@ -50,35 +61,36 @@ const Home = () => {
     navigate(`/empreses/${id}`);
   };
 
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   return (
     <div className="home-container">
-      <div className="search-section">
-        <div className="search-bar">
-          <Search className="search-icon" size={20} />
-          <input
-            type="text"
-            placeholder="Buscar..."
-            className="search-input"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <button className="filter-button">
-            <SlidersHorizontal size={20} />
-          </button>
-        </div>
-      </div>
+      <SearchBar
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        placeholder="Buscar empreses..."
+      />
 
       <div className="results-section">
         <div className="results-header">
           <p className="results-count">
-            {loading ? "Carregant..." : `${filteredResults.length} resultats`}
+            {loading
+              ? "Carregant..."
+              : `${filteredResults.length} resultats de ${totalItems} (Pàgina ${currentPage}/${totalPages})`}
           </p>
         </div>
 
         {error && (
           <div className="error-message">
-            <p>⚠️ {error}</p>
-            <button onClick={fetchEmpresas}>Reintentar</button>
+            <p>{error}</p>
+            <button onClick={() => fetchEmpresas(currentPage)}>
+              Reintentar
+            </button>
           </div>
         )}
 
@@ -114,6 +126,61 @@ const Home = () => {
             </div>
           )}
         </div>
+
+        {!loading && totalPages > 1 && (
+          <div className="pagination">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="pagination-btn"
+            >
+              ← Anterior
+            </button>
+
+            <div className="pagination-numbers">
+              {[...Array(totalPages)].map((_, index) => {
+                const pageNumber = index + 1;
+
+                if (
+                  pageNumber === 1 ||
+                  pageNumber === totalPages ||
+                  (pageNumber >= currentPage - 1 &&
+                    pageNumber <= currentPage + 1)
+                ) {
+                  return (
+                    <button
+                      key={pageNumber}
+                      onClick={() => handlePageChange(pageNumber)}
+                      className={`pagination-number ${
+                        currentPage === pageNumber ? "active" : ""
+                      }`}
+                    >
+                      {pageNumber}
+                    </button>
+                  );
+                } else if (
+                  pageNumber === currentPage - 2 ||
+                  pageNumber === currentPage + 2
+                ) {
+                  return (
+                    <span key={pageNumber} className="pagination-dots">
+                      ...
+                    </span>
+                  );
+                }
+                return null;
+              })}
+            </div>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="pagination-btn"
+            >
+              Següent →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

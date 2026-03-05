@@ -26,25 +26,56 @@ db.connect((err) => {
 
 // ENDPOINTS
 app.get("/api/empreses", (req, res) => {
-  const query =
-    "SELECT id_empresa, nom_empresa, comentaris_generals, branques FROM Empresa WHERE actiu = TRUE ORDER BY nom_empresa ASC";
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = (page - 1) * limit;
 
-  db.query(query, (err, results) => {
+  const countQuery = "SELECT COUNT(*) as total FROM Empresa WHERE actiu = TRUE";
+
+  const dataQuery = `
+    SELECT id_empresa, nom_empresa, comentaris_generals, branques 
+    FROM Empresa 
+    WHERE actiu = TRUE 
+    ORDER BY nom_empresa ASC
+    LIMIT ? OFFSET ?
+  `;
+
+  db.query(countQuery, (err, countResults) => {
     if (err) {
-      console.error("Error en la consulta:", err);
-      return res.status(500).json({ error: "Error al obtener empreses" });
+      console.error("Error al contar empreses:", err);
+      return res.status(500).json({ error: "Error al obtenir empreses" });
     }
 
-    const empresasConBranques = results.map((empresa) => ({
-      id: empresa.id_empresa,
-      title: empresa.nom_empresa,
-      description: empresa.comentaris_generals || "",
-      branques: empresa.branques
-        ? empresa.branques.split(",").map((b) => b.trim())
-        : [],
-    }));
+    const total = countResults[0].total;
+    const totalPages = Math.ceil(total / limit);
 
-    res.json(empresasConBranques);
+    db.query(dataQuery, [limit, offset], (err, results) => {
+      if (err) {
+        console.error("Error en la consulta:", err);
+        return res.status(500).json({ error: "Error al obtenir empreses" });
+      }
+
+      const empresasConBranques = results.map((empresa) => ({
+        id: empresa.id_empresa,
+        title: empresa.nom_empresa,
+        description: empresa.comentaris_generals || "",
+        branques: empresa.branques
+          ? empresa.branques.split(",").map((b) => b.trim())
+          : [],
+      }));
+
+      res.json({
+        data: empresasConBranques,
+        pagination: {
+          currentPage: page,
+          totalPages: totalPages,
+          totalItems: total,
+          itemsPerPage: limit,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1,
+        },
+      });
+    });
   });
 });
 

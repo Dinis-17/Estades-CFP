@@ -18,6 +18,8 @@ const DetallsEmpresa = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  window.scrollTo(0, 0);
+
   useEffect(() => {
     const fetchEmpresaDetall = async () => {
       try {
