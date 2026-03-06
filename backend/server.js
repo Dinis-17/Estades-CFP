@@ -24,7 +24,9 @@ db.connect((err) => {
   console.log("Conectat a MySQL");
 });
 
-// ENDPOINTS
+// ====== ENDPOINTS EMPRESES ======
+
+// GET: Obtener empresas CON PAGINACIÓN
 app.get("/api/empreses", (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -161,8 +163,143 @@ app.post("/api/empreses", (req, res) => {
   );
 });
 
-app.get("/", (req, res) => {
-  res.json({ message: "API de Empreses funcionant" });
+app.get("/api/alumnes", (req, res) => {
+  const query =
+    "SELECT id_alumne as id, nom, cognom1, cognom2, mail FROM Alumnes ORDER BY nom ASC";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error al obtenir alumnes:", err);
+      return res.status(500).json({ error: "Error al obtenir alumnes" });
+    }
+
+    res.json(results);
+  });
+});
+
+app.get("/api/empreses/:id/alumnes", (req, res) => {
+  const { id } = req.params;
+
+  const query = `
+    SELECT 
+      a.id_alumne as id,
+      a.nom,
+      a.cognom1,
+      a.cognom2,
+      a.mail,
+      c.curs,
+      c.especialitat,
+      c.criteris_especifics,
+      c.comentaris,
+      c.id_colaboracio,
+      r.id_relacio
+    FROM Alumnes a
+    INNER JOIN Relacio_col_alumnes r ON a.id_alumne = r.id_alumne
+    INNER JOIN Colaboracio c ON r.id_colaboracio = c.id_colaboracio
+    WHERE c.id_empresa = ?
+    ORDER BY a.nom ASC
+  `;
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error("Error al obtenir alumnes de l'empresa:", err);
+      return res.status(500).json({ error: "Error al obtenir alumnes" });
+    }
+
+    res.json(results);
+  });
+});
+
+app.post("/api/colaboracions", (req, res) => {
+  const {
+    id_empresa,
+    id_alumne,
+    curs,
+    especialitat,
+    dataInici,
+    dataFi,
+    criteris_especifics,
+    comentaris,
+  } = req.body;
+
+  if (!id_empresa || !id_alumne || !curs) {
+    return res.status(400).json({
+      error: "Falten camps obligatoris: id_empresa, id_alumne, curs",
+    });
+  }
+
+  const insertColaboracioQuery = `
+    INSERT INTO Colaboracio 
+    (id_empresa, curs, especialitat, criteris_especifics, comentaris) 
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  db.query(
+    insertColaboracioQuery,
+    [
+      id_empresa,
+      curs,
+      especialitat || null,
+      criteris_especifics || null,
+      comentaris || null,
+    ],
+    (err, colaboracioResult) => {
+      if (err) {
+        console.error("Error al crear colaboració:", err);
+        return res.status(500).json({ error: "Error al crear colaboració" });
+      }
+
+      const id_colaboracio = colaboracioResult.insertId;
+
+      const insertRelacioQuery = `
+        INSERT INTO Relacio_col_alumnes (id_colaboracio, id_alumne) 
+        VALUES (?, ?)
+      `;
+
+      db.query(
+        insertRelacioQuery,
+        [id_colaboracio, id_alumne],
+        (err, relacioResult) => {
+          if (err) {
+            console.error("Error al crear relació alumne-colaboració:", err);
+
+            db.query("DELETE FROM Colaboracio WHERE id_colaboracio = ?", [
+              id_colaboracio,
+            ]);
+
+            return res.status(500).json({ error: "Error al assignar alumne" });
+          }
+
+          res.status(201).json({
+            message: "Alumne assignat correctament",
+            id_colaboracio: id_colaboracio,
+            id_relacio: relacioResult.insertId,
+            dataInici: dataInici,
+            dataFi: dataFi,
+          });
+        },
+      );
+    },
+  );
+});
+
+app.delete("/api/colaboracions/:id", (req, res) => {
+  const { id } = req.params;
+
+  const query = "DELETE FROM Relacio_col_alumnes WHERE id_relacio = ?";
+
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      console.error("Error al eliminar assignació:", err);
+      return res.status(500).json({ error: "Error al eliminar assignació" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Assignació no trobada" });
+    }
+
+    res.json({ message: "Assignació eliminada correctament" });
+  });
 });
 
 const PORT = process.env.PORT || 5000;

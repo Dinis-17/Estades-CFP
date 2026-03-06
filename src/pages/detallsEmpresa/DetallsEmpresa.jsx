@@ -8,50 +8,100 @@ import {
   Globe,
   CheckCircle,
   Plus,
+  Trash2,
 } from "lucide-react";
+import ModalAssignarAlumne from "../../components/modalAsignarAlumnes/ModalAsignarAlumnes";
 import "./DetallsEmpresa.scss";
 
 const DetallsEmpresa = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [empresa, setEmpresa] = useState(null);
+  const [alumnes, setAlumnes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   window.scrollTo(0, 0);
 
   useEffect(() => {
-    const fetchEmpresaDetall = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(
-          `http://localhost:5000/api/empreses/${id}`,
-        );
-
-        if (!response.ok) {
-          throw new Error("Empresa no trobada");
-        }
-
-        const data = await response.json();
-        setEmpresa(data);
-        setError(null);
-      } catch (err) {
-        console.error("Error:", err);
-        setError("No s'ha pogut carregar la informació de l'empresa.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchEmpresaDetall();
+    fetchAlumnesEmpresa();
   }, [id]);
+
+  const fetchEmpresaDetall = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`http://localhost:5000/api/empreses/${id}`);
+
+      if (!response.ok) {
+        throw new Error("Empresa no trobada");
+      }
+
+      const data = await response.json();
+      setEmpresa(data);
+      setError(null);
+    } catch (err) {
+      console.error("Error:", err);
+      setError("No s'ha pogut carregar la informació de l'empresa.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAlumnesEmpresa = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/empreses/${id}/alumnes`,
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al carregar alumnes");
+      }
+
+      const data = await response.json();
+      setAlumnes(data);
+    } catch (err) {
+      console.error("Error al carregar alumnes:", err);
+      setAlumnes([]);
+    }
+  };
 
   const handleBack = () => {
     navigate(-1);
   };
 
   const handleAssignarAlumne = () => {
-    console.log("Assignar alumne btn");
+    setModalOpen(true);
+  };
+
+  const handleAlumneAssignat = (result) => {
+    console.log("Alumne assignat:", result);
+    fetchAlumnesEmpresa();
+  };
+
+  const handleEliminarAlumne = async (idRelacio, nomAlumne) => {
+    if (!confirm(`Segur que vols eliminar l'assignació de ${nomAlumne}?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/colaboracions/${idRelacio}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al eliminar assignació");
+      }
+
+      fetchAlumnesEmpresa();
+    } catch (err) {
+      console.error("Error:", err);
+      alert("No s'ha pogut eliminar l'assignació");
+    }
   };
 
   if (loading) {
@@ -74,30 +124,6 @@ const DetallsEmpresa = () => {
       </div>
     );
   }
-
-  const alumnes = [
-    {
-      id: 1,
-      nom: "Alumne 1",
-      branca: "TSDP 2",
-      dataInici: "02/05/26",
-      dataFi: "03/06/26",
-    },
-    {
-      id: 2,
-      nom: "Alumne 2",
-      branca: "TSDP 2",
-      dataInici: "02/05/26",
-      dataFi: "03/06/26",
-    },
-    {
-      id: 3,
-      nom: "Alumne 3",
-      branca: "TSDP 2",
-      dataInici: "02/05/26",
-      dataFi: "03/06/26",
-    },
-  ];
 
   return (
     <div className="detalls-container">
@@ -167,22 +193,32 @@ const DetallsEmpresa = () => {
               <thead>
                 <tr>
                   <th>Nom</th>
-                  <th>Branca</th>
-                  <th>Data inici</th>
-                  <th>Data fi</th>
+                  <th>Curs</th>
+                  <th>Especialitat</th>
+                  <th>Email</th>
                   <th>Accions</th>
                 </tr>
               </thead>
               <tbody>
                 {alumnes.length > 0 ? (
                   alumnes.map((alumne) => (
-                    <tr key={alumne.id}>
-                      <td>{alumne.nom}</td>
-                      <td>{alumne.branca}</td>
-                      <td>{alumne.dataInici}</td>
-                      <td>{alumne.dataFi}</td>
+                    <tr key={alumne.id_relacio}>
+                      <td>{`${alumne.nom} ${alumne.cognom1} ${alumne.cognom2}`}</td>
+                      <td>{alumne.curs}</td>
+                      <td>{alumne.especialitat || "-"}</td>
+                      <td>{alumne.mail}</td>
                       <td>
-                        <button className="btn-action">Eliminar</button>
+                        <button
+                          className="btn-action btn-delete"
+                          onClick={() =>
+                            handleEliminarAlumne(
+                              alumne.id_relacio,
+                              `${alumne.nom} ${alumne.cognom1}`,
+                            )
+                          }
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -198,6 +234,13 @@ const DetallsEmpresa = () => {
           </div>
         </main>
       </div>
+
+      <ModalAssignarAlumne
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        empresaId={id}
+        onAlumneAssignat={handleAlumneAssignat}
+      />
     </div>
   );
 };
