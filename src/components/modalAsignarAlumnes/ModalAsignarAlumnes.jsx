@@ -12,7 +12,6 @@ const ModalAssignarAlumne = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Datos del formulario
   const [formData, setFormData] = useState({
     id_alumne: "",
     curs: "",
@@ -60,7 +59,6 @@ const ModalAssignarAlumne = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validación
     if (
       !formData.id_alumne ||
       !formData.curs ||
@@ -96,7 +94,6 @@ const ModalAssignarAlumne = ({
 
       const result = await response.json();
 
-      // Resetear formulario
       setFormData({
         id_alumne: "",
         curs: "",
@@ -107,7 +104,6 @@ const ModalAssignarAlumne = ({
         comentaris: "",
       });
 
-      // Notificar al componente padre
       if (onAlumneAssignat) {
         onAlumneAssignat(result);
       }
@@ -136,7 +132,6 @@ const ModalAssignarAlumne = ({
         <form onSubmit={handleSubmit} className="modal-form">
           {error && <div className="error-banner">{error}</div>}
 
-          {/* Seleccionar Alumne */}
           <div className="form-group">
             <label htmlFor="id_alumne">Alumne *</label>
             <select
@@ -210,7 +205,6 @@ const ModalAssignarAlumne = ({
             </div>
           </div>
 
-          {/* Criteris específics */}
           <div className="form-group">
             <label htmlFor="criteris_especifics">Criteris Específics</label>
             <textarea
@@ -236,7 +230,6 @@ const ModalAssignarAlumne = ({
             />
           </div>
 
-          {/* Botones */}
           <div className="modal-actions">
             <button
               type="button"

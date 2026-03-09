@@ -24,9 +24,7 @@ db.connect((err) => {
   console.log("Conectat a MySQL");
 });
 
-// ====== ENDPOINTS EMPRESES ======
-
-// GET: Obtener empresas CON PAGINACIÓN
+// ====== ENDPOINTS ======
 app.get("/api/empreses", (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -230,8 +228,8 @@ app.post("/api/colaboracions", (req, res) => {
 
   const insertColaboracioQuery = `
     INSERT INTO Colaboracio 
-    (id_empresa, curs, especialitat, criteris_especifics, comentaris) 
-    VALUES (?, ?, ?, ?, ?)
+    (id_empresa, curs, data_inici, data_fi, especialitat, criteris_especifics, comentaris) 
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
 
   db.query(
@@ -239,18 +237,25 @@ app.post("/api/colaboracions", (req, res) => {
     [
       id_empresa,
       curs,
+      dataInici || null,
+      dataFi || null,
       especialitat || null,
       criteris_especifics || null,
       comentaris || null,
     ],
     (err, colaboracioResult) => {
       if (err) {
-        console.error("Error al crear colaboració:", err);
-        return res.status(500).json({ error: "Error al crear colaboració" });
+        console.error(err.code, err.message);
+
+        return res.status(500).json({
+          error: "Error al crear colaboració",
+          details: err.message,
+          code: err.code,
+          sqlState: err.sqlState,
+        });
       }
 
       const id_colaboracio = colaboracioResult.insertId;
-
       const insertRelacioQuery = `
         INSERT INTO Relacio_col_alumnes (id_colaboracio, id_alumne) 
         VALUES (?, ?)
@@ -261,13 +266,17 @@ app.post("/api/colaboracions", (req, res) => {
         [id_colaboracio, id_alumne],
         (err, relacioResult) => {
           if (err) {
-            console.error("Error al crear relació alumne-colaboració:", err);
+            console.error(err.code, err.message);
 
             db.query("DELETE FROM Colaboracio WHERE id_colaboracio = ?", [
               id_colaboracio,
             ]);
 
-            return res.status(500).json({ error: "Error al assignar alumne" });
+            return res.status(500).json({
+              error: "Error al assignar alumne",
+              details: err.message,
+              code: err.code,
+            });
           }
 
           res.status(201).json({
@@ -281,6 +290,67 @@ app.post("/api/colaboracions", (req, res) => {
       );
     },
   );
+});
+
+app.get("/api/colaboracions/:id", (req, res) => {
+  const { id } = req.params;
+
+  const query = `
+    SELECT 
+      c.id_colaboracio,
+      c.id_empresa,
+      c.curs,
+      c.data_inici,
+      c.data_fi,
+      c.especialitat,
+      c.criteris_especifics,
+      c.comentaris,
+      e.nom_empresa,
+      a.id_alumne,
+      a.nom,
+      a.cognom1,
+      a.cognom2,
+      a.mail
+    FROM Colaboracio c
+    INNER JOIN Empresa e ON c.id_empresa = e.id_empresa
+    LEFT JOIN Relacio_col_alumnes r ON c.id_colaboracio = r.id_colaboracio
+    LEFT JOIN Alumnes a ON r.id_alumne = a.id_alumne
+    WHERE c.id_colaboracio = ?
+  `;
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error("Error al obtenir colaboració:", err);
+      return res.status(500).json({ error: "Error al obtenir colaboració" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: "Colaboració no trobada" });
+    }
+
+    const colaboracio = {
+      id_colaboracio: results[0].id_colaboracio,
+      id_empresa: results[0].id_empresa,
+      nom_empresa: results[0].nom_empresa,
+      curs: results[0].curs,
+      data_inici: results[0].data_inici,
+      data_fi: results[0].data_fi,
+      especialitat: results[0].especialitat,
+      criteris_especifics: results[0].criteris_especifics,
+      comentaris: results[0].comentaris,
+      alumnes: results
+        .filter((r) => r.id_alumne)
+        .map((r) => ({
+          id: r.id_alumne,
+          nom: r.nom,
+          cognom1: r.cognom1,
+          cognom2: r.cognom2,
+          mail: r.mail,
+        })),
+    };
+
+    res.json(colaboracio);
+  });
 });
 
 app.delete("/api/colaboracions/:id", (req, res) => {
